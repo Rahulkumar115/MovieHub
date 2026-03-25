@@ -1,0 +1,117 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------------------------------------------------------
+// 1. USER & AUTHENTICATION (Updated for NextAuth)
+// ---------------------------------------------------------
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  bookings      Booking[] 
+  createdAt     DateTime  @default(now())
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------
+// 2. THEATER & SHOWTIMES
+// ---------------------------------------------------------
+model Theater {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  name      String     // e.g., "PVR Cinemas, C21 Mall"
+  location  String     // e.g., "Indore"
+  showtimes Showtime[] // A theater has many showtimes
+}
+
+model Showtime {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  tmdbMovieId Int       // We store the TMDB ID to fetch poster/title on the fly
+  theaterId   String    @db.ObjectId
+  theater     Theater   @relation(fields: [theaterId], references: [id])
+  startTime   DateTime
+  ticketPrice Float     // Price per seat for this specific show
+  seats       Seat[]
+  bookings    Booking[]
+}
+
+// ---------------------------------------------------------
+// 3. SEATING & CONCURRENCY (The Engine)
+// ---------------------------------------------------------
+model Seat {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  showtimeId String     @db.ObjectId
+  showtime   Showtime   @relation(fields: [showtimeId], references: [id])
+  row        String     // e.g., "A", "B", "C"
+  number     Int        // e.g., 1, 2, 3
+  status     SeatStatus @default(AVAILABLE)
+  lockedAt   DateTime?  // Crucial for the 10-minute checkout timer
+}
+
+enum SeatStatus {
+  AVAILABLE
+  LOCKED
+  BOOKED
+}
+
+// ---------------------------------------------------------
+// 4. PAYMENTS & TRANSACTIONS (Razorpay)
+// ---------------------------------------------------------
+model Booking {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  user              User     @relation(fields: [userId], references: [id])
+  showtimeId        String   @db.ObjectId
+  showtime          Showtime @relation(fields: [showtimeId], references: [id])
+  
+  // We store the booked seat IDs as an array of strings in MongoDB
+  seatIds           String[] 
+  totalAmount       Float
+  
+  // Razorpay Specific Fields
+  razorpayOrderId   String?  @unique // Generated when user clicks "Pay"
+  razorpayPaymentId String?  @unique // Received after successful payment
+  
+  status            BookingStatus @default(PENDING)
+  createdAt         DateTime      @default(now())
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
