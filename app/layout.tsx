@@ -1,3 +1,4 @@
+import Footer from '@/components/layout/Footer'; // Or '@/components/Footer' depending on where you saved it!
 import AuthProvider from "@/components/layout/AuthProvider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -14,10 +15,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} pt-16 bg-gray-950`}>
+      <body className={`${inter.className} bg-gray-950 text-white min-h-screen flex flex-col`}>
         <AuthProvider>
           <Navbar />
-          {children}
+          {/* Main content expands to push the footer down */}
+          <div className="flex-grow">
+             {children}
+          </div>
+          <Footer /> {/* <-- ADD THE FOOTER HERE */}
         </AuthProvider>
       </body>
     </html>

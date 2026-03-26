@@ -23,12 +23,13 @@ export const getTrendingMovies = async () => {
 };
 
 // Fetch full details, including the trailer video and cast, for the booking page
+// Fetch full details, including trailer, cast, recommendations, and watch providers
 export const getMovieDetails = async (id: number | string) => {
   try {
-    // 'append_to_response' is a TMDB trick to get the movie info, trailer, and actors in a single API call!
     const response = await tmdbClient.get(`/movie/${id}`, {
       params: {
-        append_to_response: 'videos,credits',
+        // We added 'images' and 'reviews' to the end of this list!
+        append_to_response: 'videos,credits,recommendations,watch/providers,images,reviews',
       },
     });
     return response.data;
@@ -50,6 +51,54 @@ export const searchMovies = async (query: string) => {
     return response.data.results;
   } catch (error) {
     console.error(`Error searching for "${query}":`, error);
+    return [];
+  }
+};
+
+// Fetch actor/person details and the movies they've starred in
+export const getPersonDetails = async (id: number | string) => {
+  try {
+    const response = await tmdbClient.get(`/person/${id}`, {
+      params: {
+        append_to_response: 'movie_credits', // Pulls in all their movies!
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching details for person ${id}:`, error);
+    return null;
+  }
+};
+
+// Fetch movies currently playing in theaters
+export const getNowPlayingMovies = async () => {
+  try {
+    const response = await tmdbClient.get('/movie/now_playing');
+    return response.data.results;
+  } catch (error) {
+    console.error('Error fetching now playing movies:', error);
+    return [];
+  }
+};
+
+// Fetch generally popular movies (Fan Favorites)
+export const getPopularMovies = async () => {
+  try {
+    const response = await tmdbClient.get('/movie/popular');
+    return response.data.results;
+  } catch (error) {
+    console.error('Error fetching popular movies:', error);
+    return [];
+  }
+};
+
+// Fetch all-time top-rated movies (Top Picks)
+export const getTopRatedMovies = async () => {
+  try {
+    const response = await tmdbClient.get('/movie/top_rated');
+    return response.data.results;
+  } catch (error) {
+    console.error('Error fetching top rated movies:', error);
     return [];
   }
 };
