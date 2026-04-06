@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn, signOut } from 'next-auth/react'; // <-- NextAuth imports
-import { Menu, Search, BookmarkPlus, ChevronDown, X, Film, Tv, Users, Calendar, LogOut } from 'lucide-react';
+import { Menu, Search, BookmarkPlus, ChevronDown, X, Film, Tv, Users, Calendar, Ticket, LogOut, PlayCircle, Sparkles, Trophy } from 'lucide-react';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -41,18 +41,65 @@ export default function Navbar() {
           </button>
 
           {/* The IMDb-Style Mega Menu Dropdown */}
+          {/* THE MEGA MENU DROPDOWN */}
           {isMenuOpen && (
-            <div className="absolute top-14 left-0 w-[300px] md:w-[600px] bg-[#1f1f1f] border border-gray-700 rounded-lg shadow-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 z-40">
-              <div>
-                <h3 className="text-[#f5c518] font-bold text-lg mb-4 flex items-center gap-2">
-                  <Film className="w-5 h-5" /> Movies
-                </h3>
-                <ul className="space-y-2 text-gray-300 text-sm">
-                  <li className="hover:text-white cursor-pointer transition">Release Calendar</li>
-                  <li className="hover:text-white cursor-pointer transition">Top 250 Movies</li>
-                </ul>
+            <div className="absolute top-full left-0 mt-4 w-[280px] sm:w-[500px] md:w-[700px] lg:w-[900px] bg-[#1f1f1f] border border-gray-800 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] p-8 z-50 animate-in fade-in slide-in-from-top-4 duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                
+                {/* 1. Movies Column */}
+                <div>
+                  <h3 className="text-[#f5c518] font-bold text-xl mb-4 flex items-center gap-2">
+                    <Film className="w-6 h-6" /> Movies
+                  </h3>
+                  <ul className="space-y-3 text-gray-300 font-semibold text-sm">
+                    <li><Link href="/browse/upcoming" className="hover:text-white hover:underline transition-all">Release Calendar</Link></li>
+                    <li><Link href="/browse/top-250" className="hover:text-white hover:underline transition-all">Top 250 Movies</Link></li>
+                    <li><Link href="/browse/popular" className="hover:text-white hover:underline transition-all">Most Popular Movies</Link></li>
+                    <li><Link href="/coming-soon" className="hover:text-white hover:underline transition-all">Browse Movies by Genre</Link></li>
+                    <li><Link href="/browse/trending" className="hover:text-white hover:underline transition-all">Top Box Office</Link></li>
+                  </ul>
+                </div>
+
+                {/* 2. TV Shows Column */}
+                <div>
+                  <h3 className="text-[#f5c518] font-bold text-xl mb-4 flex items-center gap-2">
+                    <Tv className="w-6 h-6" /> TV Shows
+                  </h3>
+                  <ul className="space-y-3 text-gray-300 font-semibold text-sm">
+                    <li><Link href="/coming-soon" className="hover:text-white hover:underline transition-all">What's on TV & Streaming</Link></li>
+                    <li><Link href="/coming-soon" className="hover:text-white hover:underline transition-all">Top 250 TV Shows</Link></li>
+                    <li><Link href="/coming-soon" className="hover:text-white hover:underline transition-all">Most Popular TV Shows</Link></li>
+                    <li><Link href="/coming-soon" className="hover:text-white hover:underline transition-all">Browse TV Shows by Genre</Link></li>
+                  </ul>
+                </div>
+
+                {/* 3. Watch Column */}
+                <div>
+                  <h3 className="text-[#f5c518] font-bold text-xl mb-4 flex items-center gap-2">
+                    <PlayCircle className="w-6 h-6" /> Watch
+                  </h3>
+                  <ul className="space-y-3 text-gray-300 font-semibold text-sm">
+                    <li><Link href="#" className="hover:text-white hover:underline transition-all">What to Watch</Link></li>
+                    <li><Link href="#" className="hover:text-white hover:underline transition-all">Latest Trailers</Link></li>
+                    <li><Link href="#" className="hover:text-white hover:underline transition-all">MovieHub Originals</Link></li>
+                    <li><Link href="#" className="hover:text-white hover:underline transition-all">MovieHub Picks</Link></li>
+                  </ul>
+                </div>
+
+                {/* 4. Awards & Events Column */}
+                <div>
+                  <h3 className="text-[#f5c518] font-bold text-xl mb-4 flex items-center gap-2">
+                    <Trophy className="w-6 h-6" /> Awards & Events
+                  </h3>
+                  <ul className="space-y-3 text-gray-300 font-semibold text-sm">
+                    <li><Link href="#" className="hover:text-white hover:underline transition-all">Oscars</Link></li>
+                    <li><Link href="#" className="hover:text-white hover:underline transition-all">Emmys</Link></li>
+                    <li><Link href="#" className="hover:text-white hover:underline transition-all">STARmeter Awards</Link></li>
+                    <li><Link href="#" className="hover:text-white hover:underline transition-all">All Events</Link></li>
+                  </ul>
+                </div>
+
               </div>
-              {/* Add more categories here if needed */}
             </div>
           )}
         </div>
@@ -107,10 +154,13 @@ export default function Navbar() {
               Sign In
             </button>
           )}
+          <Link href="/tickets" className="hover:text-[#f5c518] transition-colors font-semibold flex items-center gap-2">
+            <Ticket className="w-5 h-5" /> My Tickets
+          </Link>
 
-          <button className="hidden md:flex items-center gap-1 hover:bg-white/10 px-3 py-2 rounded-md transition-colors">
-            EN <ChevronDown className="w-4 h-4" />
-          </button>
+          <Link href="/ai-recommend" className="text-purple-400 hover:text-purple-300 transition-colors font-bold flex items-center gap-2">
+            <Sparkles className="w-4 h-4" /> AI Matchmaker
+          </Link>
         </div>
 
       </div>

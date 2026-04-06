@@ -102,3 +102,36 @@ export const getTopRatedMovies = async () => {
     return [];
   }
 };
+
+// Fetch upcoming movies (Release Calendar)
+export const getUpcomingMovies = async () => {
+  try {
+    const response = await tmdbClient.get('/movie/upcoming');
+    return response.data.results;
+  } catch (error) {
+    console.error('Error fetching upcoming movies:', error);
+    return [];
+  }
+};
+
+// Search for a specific movie by its title
+export const searchMovieByTitle = async (title: string) => {
+  try {
+    const response = await tmdbClient.get('/search/movie', {
+      params: {
+        query: title,
+        include_adult: false,
+        language: 'en-US',
+      }
+    });
+    
+    // We MUST return the first item in the results array, not the whole response!
+    if (response.data.results && response.data.results.length > 0) {
+      return response.data.results; 
+    }
+    return null;
+  } catch (error) {
+    console.error(`Error searching for ${title}:`, error);
+    return null;
+  }
+};

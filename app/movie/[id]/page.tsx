@@ -8,7 +8,7 @@ import { getMovieDetails } from '@/lib/tmdb';
 import Link from 'next/link';
 import RecommendedMovieCard from '@/components/movie/RecommendedMovieCard';
 import { 
-  Star, BookmarkPlus, MapPin, Film, Clock, User, 
+  Star, BookmarkPlus, Ticket, MapPin, Film, Clock, User, 
   MessageSquare, Plus, ExternalLink, ChevronRight, PlayCircle, Image as ImageIcon
 } from 'lucide-react';
 
@@ -142,9 +142,8 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
               <WatchlistButton movieId={movie.id.toString()} />
               
               {isBookable ? (
-                <Link href={`/book/${movie.id}`} className="block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-lg transition-colors">
-                  <Film className="w-5 h-5 inline mr-2 -mt-0.5"/>
-                  Book Tickets Now
+                <Link href={`/book/${resolvedParams.id}`} className="flex-1 bg-[#f5c518] hover:bg-yellow-500 text-black font-extrabold py-4 px-8 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_40px_rgba(245,197,24,0.3)] hover:scale-105">
+                  <Ticket className="w-6 h-6" /> Book Tickets
                 </Link>
               ) : (
                 <button disabled className="block text-center bg-gray-800 text-gray-500 font-bold py-3.5 px-6 rounded-lg cursor-not-allowed">
