@@ -35,7 +35,7 @@ export default function MovieCard({ movie }: MovieProps) {
             <span>{movie.vote_average?.toFixed(1)}</span>
             <span>•</span>
             {/* Extract just the year from "2024-03-01" */}
-            <span>{new Date(movie.release_date).getFullYear()}</span>
+            <span>{movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
           </div>
         </div>
       </div>

@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
 import Razorpay from 'razorpay';
+import { sendTicketEmail } from '@/lib/email'; 
+import { getMovieDetails } from '@/lib/tmdb'; 
 
 const prisma = new PrismaClient();
 
@@ -20,7 +22,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-const { amount, movieId, seats, theaterName, startTime } = await req.json(); // <-- Add theaterName and startTime here
+    const { amount, movieId, seats, theaterName, startTime } = await req.json();
 
     // Find or create the SPECIFIC theater the user picked
     let theater = await prisma.theater.findFirst({ where: { name: theaterName } });
@@ -35,7 +37,6 @@ const { amount, movieId, seats, theaterName, startTime } = await req.json(); // 
       where: { 
         tmdbMovieId: Number(movieId),
         theaterId: theater.id,
-        // We do a simple check to see if this time slot exists
       } 
     });
     
@@ -44,7 +45,7 @@ const { amount, movieId, seats, theaterName, startTime } = await req.json(); // 
         data: {
           tmdbMovieId: Number(movieId),
           theaterId: theater.id,
-          startTime: startTime ? new Date(startTime) : new Date(), // <-- Use the actual selected time!
+          startTime: startTime ? new Date(startTime) : new Date(), 
           ticketPrice: 150,
         }
       });
@@ -76,18 +77,60 @@ const { amount, movieId, seats, theaterName, startTime } = await req.json(); // 
   }
 }
 
-// 2. CONFIRM BOOKING AFTER PAYMENT SUCCESS
+// 2. CONFIRM BOOKING AFTER PAYMENT SUCCESS & SEND EMAIL
 export async function PUT(req: Request) {
   try {
     const { razorpayOrderId, razorpayPaymentId } = await req.json();
 
+    // 1. Find the booking FIRST so we can include the user's email and theater info
+    const booking = await prisma.booking.findFirst({
+      where: { razorpayOrderId: razorpayOrderId },
+      include: { 
+        user: true, 
+        showtime: { include: { theater: true } } 
+      }
+    });
+
+    if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+
+    // 2. Update the booking status to CONFIRMED
     const updatedBooking = await prisma.booking.update({
-      where: { razorpayOrderId },
+      where: { id: booking.id },
       data: {
-        razorpayPaymentId,
         status: 'CONFIRMED',
+        razorpayPaymentId: razorpayPaymentId,
       },
     });
+
+    // --- NEW SPIES TO CATCH THE BUG ---
+    console.log("🎟️ Booking found:", booking.id);
+    console.log("👤 User attached to booking:", booking.user?.name);
+    console.log("📧 User Email:", booking.user?.email);
+    // ----------------------------------
+
+    // 3. SEND THE EMAIL
+    if (booking.user?.email) {
+      console.log("✅ Email exists! Triggering Resend...");
+      
+      const movieData = await getMovieDetails(booking.showtime.tmdbMovieId.toString());
+      const movieTitle = movieData?.title || "Your Movie";
+      
+      const formattedTime = new Date(booking.showtime.startTime).toLocaleString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+      });
+
+      await sendTicketEmail(
+        booking.user.email, 
+        movieTitle,
+        booking.showtime.theater.name,
+        formattedTime,
+        booking.seatIds.join(', '),
+        booking.totalAmount,
+        razorpayOrderId
+      );
+    } else {
+      console.log("❌ NO EMAIL FOUND FOR THIS USER! Skipping Resend.");
+    }
 
     return NextResponse.json({ success: true, booking: updatedBooking }, { status: 200 });
   } catch (error) {
