@@ -9,8 +9,8 @@ import { getMovieDetails } from '@/lib/tmdb';
 const prisma = new PrismaClient();
 
 const razorpay = new Razorpay({
-  key_id: "rzp_test_RqBpTs0iYonPRv",
-  key_secret: "iUx3bL4Zng7PHc8T4m1wYiMH",
+  key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+  key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
 
 // 1. GENERATE ORDER & CREATE 'PENDING' BOOKING
